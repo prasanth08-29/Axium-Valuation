@@ -143,7 +143,50 @@ export async function deleteTemplate(sectorId: string) {
 
 // --- User Actions ---
 export async function getUsers() {
-  return await db.user.findMany();
+  return await db.user.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function createUser(data: { name: string; username: string; password?: string; role: string; status: string }) {
+  const user = await db.user.create({
+    data: {
+      name: data.name,
+      username: data.username.toLowerCase(),
+      password: data.password || "password123", // Default password if none provided
+      role: data.role,
+      status: data.status,
+    }
+  });
+  revalidatePath("/admin/users");
+  return user;
+}
+
+export async function updateUser(id: string, data: { name: string; username: string; password?: string; role: string; status: string }) {
+  const updateData: any = {
+    name: data.name,
+    username: data.username.toLowerCase(),
+    role: data.role,
+    status: data.status,
+  };
+
+  if (data.password && data.password.trim() !== "") {
+    updateData.password = data.password;
+  }
+
+  const user = await db.user.update({
+    where: { id },
+    data: updateData,
+  });
+  revalidatePath("/admin/users");
+  return user;
+}
+
+export async function deleteUser(id: string) {
+  await db.user.delete({
+    where: { id },
+  });
+  revalidatePath("/admin/users");
 }
 
 export async function verifyUser(username: string, password: string) {
