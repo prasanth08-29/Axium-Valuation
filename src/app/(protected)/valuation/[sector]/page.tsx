@@ -1,10 +1,11 @@
 "use client";
 
-import { notFound, useRouter } from "next/navigation";
-import { use, useState, useEffect } from "react";
+import { notFound, useRouter, useSearchParams } from "next/navigation";
+import { use, useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, User, Home, Calendar, FileText, Layers } from "lucide-react";
 import { useData, SectorId } from "@/lib/data-context";
+import { REPORT_STYLES, mergeDataWithTemplate } from "@/lib/report-generator";
 
 interface PageProps {
     params: Promise<{ sector: string }>;
@@ -12,11 +13,14 @@ interface PageProps {
 
 export default function ValuationPage({ params }: PageProps) {
     const { sector } = use(params);
-    const { sectors, templates, addValuation } = useData();
+    const { sectors, templates, valuations, addValuation, updateValuation, refreshData } = useData();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const draftId = searchParams.get('draft');
 
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -33,6 +37,24 @@ export default function ValuationPage({ params }: PageProps) {
         notFound();
     }
 
+    // Pre-populate data if resuming a draft
+    useEffect(() => {
+        if (draftId && valuations.length > 0) {
+            const draft = valuations.find(v => v.id === draftId);
+            if (draft && draft.status === "Pending" && draft.sectorId === sector) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setFormData({
+                    clientName: draft.clientName,
+                    propertyAddress: draft.propertyAddress,
+                    valuationAmount: draft.valuationAmount ? draft.valuationAmount.toString() : "",
+                    valuationDate: draft.valuationDate || new Date().toISOString().split('T')[0],
+                    notes: draft.notes || "",
+                    dynamicData: (draft.dynamicData as Record<string, string>) || {}
+                });
+            }
+        }
+    }, [draftId, valuations, sector]);
+
     const template = templates[sector as SectorId];
 
     // Only use fields if they exist in the current template
@@ -40,7 +62,20 @@ export default function ValuationPage({ params }: PageProps) {
 
     // Remove any <form> tags from the template code to prevent nesting issues
     const rawCode = template?.code || "";
-    const htmlContent = rawCode.replace(/<\/?form[^>]*>/gi, "");
+    const cleanRawCode = rawCode.replace(/<\/?form[^>]*>/gi, "");
+
+    // Inject formData directly into the HTML inputs using Virtual DOM so edits can resume seamlessly
+    const htmlContent = useMemo(() => {
+        if (!cleanRawCode) return "";
+        return mergeDataWithTemplate(cleanRawCode, {
+            clientName: formData.clientName,
+            propertyAddress: formData.propertyAddress,
+            valuationAmount: Number(formData.valuationAmount) || 0,
+            valuationDate: formData.valuationDate,
+            notes: formData.notes,
+            dynamicData: formData.dynamicData
+        }, false); // false = do not lock inputs to readonly
+    }, [cleanRawCode, formData]);
 
     // Inject JS from the HTML content
     useEffect(() => {
@@ -72,9 +107,15 @@ export default function ValuationPage({ params }: PageProps) {
                     // We wrap in a setImmediate/timeout to allow DOM to render first
                     const timer = setTimeout(() => {
                         try {
-                            // eslint-disable-next-line no-new-func
-                            const fn = new Function(script.textContent || "");
-                            fn();
+                            const newScript = document.createElement('script');
+                            newScript.textContent = script.textContent || "";
+                            document.body.appendChild(newScript);
+
+                            cleanupFns.push(() => {
+                                if (document.body.contains(newScript)) {
+                                    document.body.removeChild(newScript);
+                                }
+                            });
                         } catch (err) {
                             console.error("Error executing inline template script:", err);
                         }
@@ -86,15 +127,18 @@ export default function ValuationPage({ params }: PageProps) {
             }
         });
 
-        // Debugging inputs missing names
+        // Debugging inputs missing names/ids
         setTimeout(() => {
             const inputs = container.querySelectorAll('input, select, textarea');
             inputs.forEach(el => {
                 const input = el as HTMLElement;
-                if (!input.getAttribute('name')) {
-                    console.warn("Input element missing 'name' attribute:", input);
+                if (!input.getAttribute('name') && !input.getAttribute('id')) {
+                    console.warn("Input element missing both 'name' and 'id' attributes:", input);
                     input.style.border = "2px solid red";
-                    input.title = "Warning: Missing 'name' attribute. Data won't save.";
+                    input.title = "Warning: Missing field identifier. Data won't save.";
+                } else if (input.getAttribute('id')?.startsWith('auto_field_')) {
+                    // It was auto-assigned. Let's make it visible in title
+                    input.title = `Auto-ID assigned: ${input.getAttribute('id')}. Data will save.`;
                 }
             });
         }, 500);
@@ -104,7 +148,21 @@ export default function ValuationPage({ params }: PageProps) {
         };
     }, [htmlContent, sector]);
 
+    // Warn before leaving if there are unsaved changes
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty && !submitted) {
+                e.preventDefault();
+                e.returnValue = ''; // Required for Chrome/Edge
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty, submitted]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setIsDirty(true);
         const { name, value } = e.target;
 
         if (dynamicFields.includes(name)) {
@@ -120,51 +178,110 @@ export default function ValuationPage({ params }: PageProps) {
         }
     };
 
+    const [lastValuationId, setLastValuationId] = useState<string | null>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // Capture dynamic data from the form directly for HTML templates
         const form = new FormData(e.currentTarget);
-        const entries = Array.from(form.entries());
-        console.log("Form Submission Entries:", entries); // Debug logging
+        const capturedDynamicData = { ...formData.dynamicData };
+        let clientName = formData.clientName || "Untitled Valuation";
+        let propertyAddress = formData.propertyAddress || "";
+        let valuationAmountStr = formData.valuationAmount?.toString() || "0";
+        let valuationDate = formData.valuationDate || new Date().toISOString().split('T')[0];
+        let notes = formData.notes || "";
 
-        // Dynamic data
-        let capturedDynamicData = { ...formData.dynamicData };
+        // Find out which button was clicked
+        const submitAction = (e.nativeEvent as SubmitEvent).submitter?.getAttribute('value') || "completed";
+        const formStatus = submitAction === "pending" ? "Pending" : "Completed";
+
         if (htmlContent) {
-            for (const [key, value] of entries) {
-                // Skip standard fields that are handled separately
-                if (!['clientName', 'propertyAddress', 'valuationAmount', 'valuationDate', 'notes'].includes(key)) {
-                    capturedDynamicData[key] = value.toString();
-                }
+            // Because Word templates can have broken HTML structures (like inputs outside of tables), 
+            // a standard FormData might miss them if the DOM gets confused.
+            // We manually query all input, select, and textarea elements within our form ref to be safe.
+            if (formRef.current) {
+                const allInputs = formRef.current.querySelectorAll('input, select, textarea');
+                allInputs.forEach(el => {
+                    const input = el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+                    const name = input.name || input.id;
+                    if (!name) return; // Skip unnamed elements without ID
+
+                    // Get value based on input type
+                    const val = input.value;
+                    if (input.tagName === 'INPUT') {
+                        const type = (input as HTMLInputElement).type;
+                        if (type === 'checkbox' || type === 'radio') {
+                            if (!(input as HTMLInputElement).checked) return; // Skip unchecked
+                        }
+                    }
+                    console.log(`[Form HTMLScraper] Found input: ${name} = ${val}`);
+
+                    // Map to appropriate field
+                    if (name === 'clientName') clientName = val;
+                    else if (name === 'propertyAddress') propertyAddress = val;
+                    else if (name === 'valuationAmount') valuationAmountStr = val;
+                    else if (name === 'valuationDate') valuationDate = val;
+                    else if (name === 'notes') notes = val;
+                    else if (name !== 'submitAction') capturedDynamicData[name] = val;
+                });
             }
-        }
-
-        // Standard fields processing
-        const clientName = htmlContent ? (form.get('clientName')?.toString() || "") : formData.clientName;
-        const propertyAddress = htmlContent ? (form.get('propertyAddress')?.toString() || "") : formData.propertyAddress;
-        const valuationAmountStr = htmlContent ? (form.get('valuationAmount')?.toString() || "") : formData.valuationAmount;
-        const valuationDate = htmlContent ? (form.get('valuationDate')?.toString() || "") : formData.valuationDate;
-        const notes = htmlContent ? (form.get('notes')?.toString() || "") : formData.notes;
-
-        if (!clientName || !propertyAddress || !valuationAmountStr) {
-            alert("Please include standard fields (clientName, propertyAddress, valuationAmount) in your template.");
-            return;
+        } else {
+            // Standard static fields form
+            clientName = form.get('clientName')?.toString() || clientName;
+            propertyAddress = form.get('propertyAddress')?.toString() || propertyAddress;
+            valuationAmountStr = form.get('valuationAmount')?.toString() || valuationAmountStr;
+            valuationDate = form.get('valuationDate')?.toString() || valuationDate;
+            notes = form.get('notes')?.toString() || notes;
         }
 
         setSubmitting(true);
+        console.log("[Form HTMLScraper] Final Payload to DB:", {
+            clientName, propertyAddress, valuationAmountStr, valuationDate, notes, capturedDynamicData
+        });
 
-        setTimeout(() => {
-            addValuation({
-                sectorId: sector as SectorId,
-                clientName: clientName,
-                propertyAddress: propertyAddress,
-                valuationAmount: parseFloat(valuationAmountStr),
-                valuationDate: valuationDate || new Date().toISOString().split('T')[0],
-                notes: notes,
-                dynamicData: capturedDynamicData
-            });
-            setSubmitting(false);
-            setSubmitted(true);
+        // ... (removed debug notes override)
+
+        setTimeout(async () => {
+            try {
+                let newValId = "";
+
+                if (draftId) {
+                    const updatedVal = await updateValuation(draftId, {
+                        clientName: clientName,
+                        propertyAddress: propertyAddress,
+                        valuationAmount: parseFloat(valuationAmountStr) || 0,
+                        valuationDate: valuationDate,
+                        notes: notes,
+                        dynamicData: capturedDynamicData,
+                        status: formStatus
+                    });
+                    newValId = updatedVal.id;
+                } else {
+                    const newVal = await addValuation({
+                        sectorId: sector as SectorId,
+                        clientName: clientName,
+                        propertyAddress: propertyAddress,
+                        valuationAmount: parseFloat(valuationAmountStr) || 0,
+                        valuationDate: valuationDate,
+                        notes: notes,
+                        dynamicData: capturedDynamicData,
+                        status: formStatus
+                    });
+                    newValId = newVal.id;
+                }
+
+                await refreshData();
+                setLastValuationId(newValId);
+                setSubmitting(false);
+                setSubmitted(true);
+                setIsDirty(false);
+            } catch (error) {
+                console.error("Failed to submit valuation:", error);
+                setSubmitting(false);
+                // In a real app we'd show an error state here
+            }
         }, 1000);
     };
 
@@ -194,7 +311,12 @@ export default function ValuationPage({ params }: PageProps) {
             </div>
 
             {!submitted ? (
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form
+                    ref={formRef}
+                    onSubmit={handleSubmit}
+                    onChange={() => setIsDirty(true)}
+                    className="space-y-8"
+                >
                     {/* Section 1: Client & Property */}
                     {!htmlContent && (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -214,7 +336,6 @@ export default function ValuationPage({ params }: PageProps) {
                                             type="text"
                                             name="clientName"
                                             id="clientName"
-                                            required
                                             className="block w-full rounded-md border-0 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-shadow"
                                             placeholder="e.g. John Doe Property"
                                             value={formData.clientName}
@@ -225,14 +346,13 @@ export default function ValuationPage({ params }: PageProps) {
 
                                 <div className="col-span-2">
                                     <label htmlFor="propertyAddress" className="block text-sm font-medium leading-6 text-gray-900">
-                                        Property Address <span className="text-red-500">*</span>
+                                        Property Address
                                     </label>
                                     <div className="mt-2">
                                         <textarea
                                             name="propertyAddress"
                                             id="propertyAddress"
                                             rows={3}
-                                            required
                                             className="block w-full rounded-md border-0 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-shadow"
                                             placeholder="Full address of the property"
                                             value={formData.propertyAddress}
@@ -256,7 +376,7 @@ export default function ValuationPage({ params }: PageProps) {
                             <div className="p-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
                                     <label htmlFor="valuationAmount" className="block text-sm font-medium leading-6 text-gray-900">
-                                        Valuation Amount ($) <span className="text-red-500">*</span>
+                                        Valuation Amount ($)
                                     </label>
                                     <div className="mt-2 relative rounded-md shadow-sm">
                                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -268,7 +388,6 @@ export default function ValuationPage({ params }: PageProps) {
                                             id="valuationAmount"
                                             min="0"
                                             step="0.01"
-                                            required
                                             className="block w-full rounded-md border-0 py-2 pl-7 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-shadow"
                                             placeholder="0.00"
                                             value={formData.valuationAmount}
@@ -279,7 +398,7 @@ export default function ValuationPage({ params }: PageProps) {
 
                                 <div>
                                     <label htmlFor="valuationDate" className="block text-sm font-medium leading-6 text-gray-900">
-                                        Valuation Date <span className="text-red-500">*</span>
+                                        Valuation Date
                                     </label>
                                     <div className="mt-2 relative">
                                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -289,7 +408,6 @@ export default function ValuationPage({ params }: PageProps) {
                                             type="date"
                                             name="valuationDate"
                                             id="valuationDate"
-                                            required
                                             className="block w-full rounded-md border-0 py-2 pl-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-shadow"
                                             value={formData.valuationDate}
                                             onChange={handleChange}
@@ -319,51 +437,18 @@ export default function ValuationPage({ params }: PageProps) {
 
                     {/* Section 3: Dynamic Template Data */}
                     {htmlContent ? (
-                        <div className="bg-white rounded-xl shadow-sm ring-1 ring-indigo-900/5 overflow-hidden">
+                        <div className="bg-white rounded-xl shadow-xl shadow-slate-200/50 ring-1 ring-slate-200 overflow-hidden">
                             <div className="border-b border-indigo-100 bg-indigo-50/50 px-6 py-4">
                                 <h3 className="text-base font-semibold leading-6 text-indigo-900 flex items-center gap-2">
                                     <FileText className="h-4 w-4 text-indigo-500" />
                                     {currentSector.name} Report Form
                                 </h3>
                             </div>
-                            <div className="p-6">
+                            <div className="p-8 sm:p-12">
                                 {/* Fallback CSS to valid inputs even without template styles */}
-                                <style>{`
-                                    .dynamic-template-container input:not([type="checkbox"]):not([type="radio"]),
-                                    .dynamic-template-container select,
-                                    .dynamic-template-container textarea {
-                                        display: block;
-                                        width: 100%;
-                                        border-radius: 0.5rem;
-                                        border: 1px solid #9ca3af;
-                                        background-color: #f9fafb;
-                                        padding: 1rem;
-                                        font-size: 1.1rem;
-                                        color: #111827;
-                                        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-                                    }
-                                    .dynamic-template-container input:focus,
-                                    .dynamic-template-container select:focus,
-                                    .dynamic-template-container textarea:focus {
-                                        border-color: #4f46e5;
-                                        background-color: #ffffff;
-                                        outline: 2px solid transparent;
-                                        outline-offset: 2px;
-                                        box-shadow: 0 0 0 4px #e0e7ff;
-                                    }
-                                    .dynamic-template-container label {
-                                        display: block;
-                                        font-size: 1.1rem;
-                                        font-weight: 600;
-                                        color: #111827;
-                                        margin-bottom: 0.5rem;
-                                    }
-                                    .dynamic-template-container .form-group {
-                                        margin-bottom: 2rem;
-                                    }
-                                `}</style>
+                                <style>{REPORT_STYLES}</style>
                                 <div
-                                    className="dynamic-template-container space-y-4 pointer-events-auto"
+                                    className="valuation-report-content pointer-events-auto"
                                     dangerouslySetInnerHTML={{ __html: htmlContent }}
                                 />
                             </div>
@@ -397,6 +482,17 @@ export default function ValuationPage({ params }: PageProps) {
                         </button>
                         <button
                             type="submit"
+                            name="submitAction"
+                            value="pending"
+                            disabled={submitting}
+                            className="rounded-md bg-white border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 transition-all active:scale-95"
+                        >
+                            Save as Draft
+                        </button>
+                        <button
+                            type="submit"
+                            name="submitAction"
+                            value="completed"
                             disabled={submitting}
                             className="rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 transition-all active:scale-95"
                         >
@@ -418,31 +514,56 @@ export default function ValuationPage({ params }: PageProps) {
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900">Valuation Submitted!</h3>
                     <p className="text-gray-500 mt-2 max-w-md mx-auto">
-                        The valuation for <strong>{formData.clientName}</strong> has been successfully recorded and is now available in your dashboard.
+                        The valuation for <strong>{formData.clientName}</strong> has been successfully recorded.
                     </p>
-                    <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full max-w-sm">
-                        <button
-                            onClick={() => {
-                                setSubmitted(false);
-                                setFormData({
-                                    clientName: "",
-                                    propertyAddress: "",
-                                    valuationAmount: "",
-                                    valuationDate: new Date().toISOString().split('T')[0],
-                                    notes: "",
-                                    dynamicData: {}
-                                });
-                            }}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-                        >
-                            Add Another
-                        </button>
-                        <button
-                            onClick={() => router.push("/dashboard")}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm"
-                        >
-                            Go to Dashboard
-                        </button>
+
+                    <div className="mt-8 flex flex-col items-center gap-4 w-full max-w-lg">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <button
+                                onClick={() => router.push(`/valuation/report/${lastValuationId}`)}
+                                className="flex items-center justify-center gap-2 px-6 py-3 text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-md active:scale-95"
+                            >
+                                <FileText className="h-5 w-5" />
+                                View Full Report
+                            </button>
+                            <Link
+                                href={`/valuation/report/${lastValuationId}`}
+                                className="flex items-center justify-center gap-2 px-6 py-3 text-base font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-all border border-blue-200 active:scale-95"
+                            >
+                                <CheckCircle2 className="h-5 w-5" />
+                                Export PDF / Word
+                            </Link>
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-4 text-sm font-medium">
+                            <button
+                                onClick={() => {
+                                    setSubmitted(false);
+                                    setIsDirty(false);
+                                    setFormData({
+                                        clientName: "",
+                                        propertyAddress: "",
+                                        valuationAmount: "",
+                                        valuationDate: new Date().toISOString().split('T')[0],
+                                        notes: "",
+                                        dynamicData: {}
+                                    });
+                                }}
+                                className="text-gray-500 hover:text-indigo-600 transition-colors"
+                            >
+                                Add Another Valuation
+                            </button>
+                            <span className="text-gray-300">|</span>
+                            <button
+                                onClick={() => {
+                                    router.push("/dashboard");
+                                    router.refresh();
+                                }}
+                                className="text-gray-500 hover:text-indigo-600 transition-colors"
+                            >
+                                Return to Dashboard
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

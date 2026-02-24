@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  username  String   @unique
+  password  String
+  role      String   @default("user")
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Sector {
+  id         String      @id
+  name       String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  valuations Valuation[]
+  templates  Template[]
+}
+
+model Valuation {
+  id              String   @id @default(cuid())
+  sectorId        String
+  clientName      String
+  propertyAddress String
+  valuationAmount Float
+  valuationDate   String
+  status          String   @default("Completed")
+  notes           String?
+  dynamicData     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  sector          Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+}
+
+model Template {
+  id        String   @id @default(cuid())
+  sectorId  String   @unique
+  code      String
+  fields    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sector    Sector   @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+}

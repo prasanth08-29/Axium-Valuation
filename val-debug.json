@@ -1,0 +1,13 @@
+{
+  "id": "cmm0ghoi30003sj7adhjqz5g3",
+  "sectorId": "bank",
+  "clientName": "Untitled Valuation",
+  "propertyAddress": "",
+  "valuationAmount": 0,
+  "valuationDate": "2026-02-24",
+  "status": "Completed",
+  "notes": "",
+  "dynamicData": "{\"bArea\":\"\",\"age\":\"\",\"depreciation\":\"\",\"replacementRate\":\"\",\"landDeed\":\"\",\"landValuation\":\"\",\"buildingValuationExtent\":\"\",\"guidelineRate\":\"\",\"marketRate\":\"\",\"adoptedRate\":\"\",\"buildingValuationFinal\":\"\"}",
+  "createdAt": "2026-02-24T10:22:00.264Z",
+  "updatedAt": "2026-02-24T10:22:00.264Z"
+}

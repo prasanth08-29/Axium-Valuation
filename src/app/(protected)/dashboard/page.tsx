@@ -1,7 +1,19 @@
 "use client";
 
 import { useData } from "@/lib/data-context";
-import { Building, Building2, User, FileText, TrendingUp, CheckCircle2, Clock } from "lucide-react";
+import {
+    Building,
+    Building2,
+    User,
+    FileText,
+    TrendingUp,
+    CheckCircle2,
+    Clock,
+    Plus,
+    ArrowUpRight,
+    Layers,
+    Calendar
+} from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -10,132 +22,174 @@ export default function DashboardPage() {
     // Calculate Stats
     const totalValuations = valuations.length;
     const completedValuations = valuations.filter(v => v.status === "Completed").length;
-    const pendingValuations = valuations.filter(v => v.status === "Pending").length;
+    const totalAmount = valuations.reduce((sum, v) => sum + v.valuationAmount, 0);
+
+    const stats = {
+        totalValuations,
+        completedValuations,
+        totalAmount
+    };
 
     return (
-        <div className="space-y-10">
-            {/* Header & Stats */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-                <p className="mt-2 text-gray-500">Overview of your valuation activities.</p>
+        <div className="space-y-8 pb-12 text-gray-900">
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
+                <p className="text-sm text-gray-500 font-medium">Welcome back! Here's what's happening with your valuations today.</p>
+            </div>
 
-                <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
-                    <div className="overflow-hidden rounded-xl bg-white px-4 py-5 shadow-sm ring-1 ring-gray-900/5 sm:p-6 transition-all hover:shadow-md">
-                        <dt className="truncate text-sm font-medium text-gray-500">Total Valuations</dt>
-                        <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900 flex items-center gap-2">
-                            {totalValuations}
-                            <TrendingUp className="h-5 w-5 text-indigo-500" />
-                        </dd>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {sectors.map((sector) => (
+                    <Link
+                        key={sector.id}
+                        href={`/valuation/${sector.id}`}
+                        className="group relative flex items-center gap-x-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-lg hover:ring-indigo-500/30 hover:-translate-y-1"
+                    >
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 group-hover:bg-indigo-600 transition-colors duration-300">
+                            <Plus className="h-6 w-6 text-indigo-600 group-hover:text-white transition-colors duration-300" />
+                        </div>
+                        <div>
+                            <span className="block text-sm font-bold text-gray-900 leading-tight">New {sector.name}</span>
+                            <span className="block text-xs text-gray-400 font-medium mt-0.5">Create valuation</span>
+                        </div>
+                        <ArrowUpRight className="absolute right-4 top-4 h-4 w-4 text-gray-300 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    </Link>
+                ))}
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 group transition-all hover:shadow-md">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-indigo-500/5 transition-transform group-hover:scale-150 duration-700" />
+                    <div className="flex items-center gap-x-5">
+                        <div className="rounded-xl bg-indigo-50 p-4 ring-1 ring-indigo-500/10">
+                            <Layers className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-500">Total Valuations</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{stats.totalValuations}</p>
+                        </div>
                     </div>
-                    <div className="overflow-hidden rounded-xl bg-white px-4 py-5 shadow-sm ring-1 ring-gray-900/5 sm:p-6 transition-all hover:shadow-md">
-                        <dt className="truncate text-sm font-medium text-gray-500">Completed</dt>
-                        <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900 flex items-center gap-2">
-                            {completedValuations}
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        </dd>
+                </div>
+
+                <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 group transition-all hover:shadow-md">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-emerald-500/5 transition-transform group-hover:scale-150 duration-700" />
+                    <div className="flex items-center gap-x-5">
+                        <div className="rounded-xl bg-emerald-50 p-4 ring-1 ring-emerald-500/10">
+                            <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-500">Completed</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{stats.completedValuations}</p>
+                        </div>
                     </div>
-                    <div className="overflow-hidden rounded-xl bg-white px-4 py-5 shadow-sm ring-1 ring-gray-900/5 sm:p-6 transition-all hover:shadow-md">
-                        <dt className="truncate text-sm font-medium text-gray-500">Pending</dt>
-                        <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900 flex items-center gap-2">
-                            {pendingValuations}
-                            <Clock className="h-5 w-5 text-amber-500" />
-                        </dd>
+                </div>
+
+                <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 group transition-all hover:shadow-md">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-amber-500/5 transition-transform group-hover:scale-150 duration-700" />
+                    <div className="flex items-center gap-x-5">
+                        <div className="rounded-xl bg-amber-50 p-4 ring-1 ring-amber-500/10">
+                            <Calendar className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-gray-500">Total Amount</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">${stats.totalAmount.toLocaleString()}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Sector Selection */}
-            <section>
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Start New Valuation</h2>
+            {/* Recent Activity Table */}
+            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 overflow-hidden">
+                <div className="px-6 py-6 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+                        <p className="mt-1 text-sm text-gray-500 font-medium font-medium">Your most recent valuation report submissions.</p>
+                    </div>
+                    <Link href="/valuations" className="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors bg-indigo-50 px-4 py-2 rounded-lg">
+                        View all reports &rarr;
+                    </Link>
                 </div>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {sectors.map((sector) => {
-                        // Dynamic styling
-                        const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-cyan-500", "bg-rose-500"];
-                        const colorIndex = sector.name.length % colors.length;
-                        const color = colors[colorIndex];
-                        const Icon = sector.id === "bank" ? Building : (sector.id === "individual" ? User : (sector.id === "company" ? Building2 : FileText));
-
-                        return (
-                            <Link
-                                key={sector.id}
-                                href={`/valuation/${sector.id}`}
-                                className="group relative flex flex-col items-start justify-between space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:border-gray-200"
-                            >
-                                <div className={`p-3 rounded-xl ${color} bg-opacity-10 group-hover:bg-opacity-20 transition-colors`}>
-                                    <Icon className={`h-6 w-6 ${color.replace("bg-", "text-")}`} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                                        {sector.name}
-                                    </h3>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Create a new report for {sector.name.toLowerCase()}.
-                                    </p>
-                                </div>
-                                <div className="w-full pt-4 border-t border-gray-50 flex items-center text-sm font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Start Report &rarr;
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
-            </section>
-
-            {/* Recent Valuations Table */}
-            <section>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h2>
-                <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
-                    {valuations.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-100">
-                                <thead className="bg-gray-50/50">
-                                    <tr>
-                                        <th scope="col" className="py-4 pl-6 pr-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Client</th>
-                                        <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Address</th>
-                                        <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Sector</th>
-                                        <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Amount</th>
-                                        <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Date</th>
-                                        <th scope="col" className="px-3 py-4 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Status</th>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-100">
+                        <thead className="bg-gray-50/50">
+                            <tr>
+                                <th scope="col" className="py-4 pl-6 pr-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Client / Property</th>
+                                <th scope="col" className="px-3 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Sector</th>
+                                <th scope="col" className="px-3 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Date</th>
+                                <th scope="col" className="px-3 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Amount</th>
+                                <th scope="col" className="px-3 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-500">Status</th>
+                                <th scope="col" className="relative py-4 pl-3 pr-6 text-right">
+                                    <span className="sr-only">Actions</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 bg-white">
+                            {valuations.length > 0 ? (
+                                valuations.slice(0, 5).map((val) => (
+                                    <tr key={val.id} className="group hover:bg-slate-50/50 transition-colors">
+                                        <td className="whitespace-nowrap py-5 pl-6 pr-3">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-gray-900 leading-tight">{val.clientName}</span>
+                                                <span className="text-xs text-gray-500 mt-1 truncate max-w-xs font-medium">{val.propertyAddress}</span>
+                                            </div>
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm">
+                                            <span className="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600 capitalize">
+                                                {val.sectorId}
+                                            </span>
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 font-semibold tracking-tight">
+                                            {val.valuationDate}
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm font-bold text-gray-900 tracking-tight">
+                                            ${val.valuationAmount.toLocaleString()}
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm">
+                                            <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${val.status === 'Completed'
+                                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20'
+                                                : 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20'
+                                                }`}>
+                                                <span className={`h-1.5 w-1.5 rounded-full ${val.status === 'Completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                                {val.status}
+                                            </span>
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-right text-sm font-medium pr-6">
+                                            {val.status === 'Completed' ? (
+                                                <Link
+                                                    href={`/valuation/report/${val.id}`}
+                                                    className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-4 py-2 rounded-xl text-xs font-bold transition-all group-hover:bg-indigo-600 group-hover:text-white"
+                                                >
+                                                    View Report
+                                                </Link>
+                                            ) : (
+                                                <Link
+                                                    href={`/valuation/${val.sectorId}?draft=${val.id}`}
+                                                    className="text-amber-600 hover:text-amber-900 bg-amber-50 px-4 py-2 rounded-xl text-xs font-bold transition-all group-hover:bg-amber-600 group-hover:text-white"
+                                                >
+                                                    Resume Draft
+                                                </Link>
+                                            )}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 bg-white">
-                                    {valuations.map((val) => (
-                                        <tr key={val.id} className="hover:bg-gray-50/80 transition-colors">
-                                            <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900">{val.clientName}</td>
-                                            <td className="px-3 py-4 text-sm text-gray-500 max-w-xs truncate">{val.propertyAddress}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 capitalize">
-                                                <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                                                    {val.sectorId}
-                                                </span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm font-semibold text-gray-900">
-                                                ${val.valuationAmount.toLocaleString()}
-                                            </td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{val.valuationDate}</td>
-                                            <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${val.status === 'Completed'
-                                                        ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20'
-                                                        : 'bg-yellow-50 text-yellow-800 ring-1 ring-inset ring-yellow-600/20'
-                                                    }`}>
-                                                    {val.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="text-center py-16">
-                            <FileText className="mx-auto h-12 w-12 text-gray-300" />
-                            <h3 className="mt-2 text-sm font-semibold text-gray-900">No valuations</h3>
-                            <p className="mt-1 text-sm text-gray-500">Get started by creating a new valuation report above.</p>
-                        </div>
-                    )}
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="py-20 text-center">
+                                        <div className="flex flex-col items-center">
+                                            <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                                <FileText className="h-8 w-8 text-gray-300" />
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-400">No valuations found</p>
+                                            <p className="text-xs text-gray-400 mt-1">Start by creating a new report from the dashboard</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-            </section>
+            </div>
         </div>
     );
 }

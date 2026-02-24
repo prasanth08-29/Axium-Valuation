@@ -12,8 +12,8 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    login: (username: string, role: UserRole) => void;
-    logout: () => void;
+    login: (username: string, role: UserRole) => Promise<void>;
+    logout: () => Promise<void>;
     isAuthenticated: boolean;
 }
 
@@ -31,14 +31,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const login = (username: string, role: UserRole) => {
+    const login = async (username: string, role: UserRole) => {
+        // Simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
         const newUser = { username, role };
         setUser(newUser);
         localStorage.setItem("user", JSON.stringify(newUser));
         router.push("/dashboard");
     };
 
-    const logout = () => {
+    const logout = async () => {
+        // Simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         setUser(null);
         localStorage.removeItem("user");
         router.push("/login");
