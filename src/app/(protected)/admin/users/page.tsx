@@ -12,6 +12,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { createUserSchema, updateUserSchema, CreateUserFormValues, UpdateUserFormValues } from "@/lib/schemas";
 
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageWrapper } from "@/components/ui/page-wrapper";
+import { motion, AnimatePresence } from "framer-motion";
+
 type UserType = {
     id: string;
     name: string;
@@ -134,10 +139,14 @@ export default function AdminUsersPage() {
         return null;
     }
 
+    import { PageWrapper } from "@/components/ui/page-wrapper";
+
+    // ... further down inside AdminUsersPage return block ...
     return (
-        <div className="space-y-6 relative">
+        <PageWrapper className="space-y-6 relative">
             <div className="flex items-center justify-between">
                 <div>
+// ... (cutting the rest to avoid massive block replacements, let me just replace the outer div instead)
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
                     <p className="text-slate-500 mt-1">Manage system access and roles</p>
                 </div>
@@ -217,15 +226,35 @@ export default function AdminUsersPage() {
                         </thead>
                         <tbody className="divide-y divide-slate-200">
                             {isLoading ? (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                                        Loading users...
-                                    </td>
-                                </tr>
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={`skeleton-${i}`}>
+                                        <td className="px-6 py-4"><div className="flex items-center gap-3"><Skeleton className="h-8 w-8 rounded-full" /><Skeleton className="h-4 w-24" /></div></td>
+                                        <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
+                                        <td className="px-6 py-4"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                                        <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+                                        <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                                        <td className="px-6 py-4 text-right"><Skeleton className="h-6 w-16 ml-auto" /></td>
+                                    </tr>
+                                ))
                             ) : usersList.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                                        No users found.
+                                    <td colSpan={6} className="px-6 py-8">
+                                        <EmptyState
+                                            title="No users found"
+                                            description={searchTerm ? "We couldn't find any users matching your search." : "Get started by adding a new user to the system."}
+                                            icon={<Users className="w-6 h-6 text-indigo-400" />}
+                                            className="border-none bg-transparent py-8"
+                                            action={
+                                                !searchTerm && (
+                                                    <button
+                                                        onClick={() => handleOpenModal()}
+                                                        className="text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                                                    >
+                                                        Add your first user &rarr;
+                                                    </button>
+                                                )
+                                            }
+                                        />
                                     </td>
                                 </tr>
                             ) : (
@@ -288,91 +317,99 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-slate-900">
-                                {isEditing ? "Edit User" : "Add New User"}
-                            </h3>
-                            <button type="button" onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                                <input
-                                    type="text"
-                                    {...register("name")}
-                                    className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.name ? "border-red-500" : "border-slate-300")}
-                                />
-                                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message as string}</p>}
+            <AnimatePresence>
+                {isModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            transition={{ duration: 0.2 }}
+                            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden ring-1 ring-slate-200"
+                        >
+                            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-slate-900">
+                                    {isEditing ? "Edit User" : "Add New User"}
+                                </h3>
+                                <button type="button" onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600">
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                                <input
-                                    type="text"
-                                    {...register("username")}
-                                    className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.username ? "border-red-500" : "border-slate-300")}
-                                />
-                                {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message as string}</p>}
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Password {isEditing && <span className="text-slate-400 font-normal">(Leave blank to keep current)</span>}
-                                </label>
-                                <input
-                                    type="password"
-                                    {...register("password")}
-                                    className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.password ? "border-red-500" : "border-slate-300")}
-                                    placeholder={isEditing ? "••••••••" : ""}
-                                />
-                                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message as string}</p>}
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                                    <select
-                                        {...register("role")}
-                                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    >
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                                    <input
+                                        type="text"
+                                        {...register("name")}
+                                        className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.name ? "border-red-500" : "border-slate-300")}
+                                    />
+                                    {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message as string}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                                    <select
-                                        {...register("status")}
-                                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                                    <input
+                                        type="text"
+                                        {...register("username")}
+                                        className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.username ? "border-red-500" : "border-slate-300")}
+                                    />
+                                    {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message as string}</p>}
                                 </div>
-                            </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                        Password {isEditing && <span className="text-slate-400 font-normal">(Leave blank to keep current)</span>}
+                                    </label>
+                                    <input
+                                        type="password"
+                                        {...register("password")}
+                                        className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.password ? "border-red-500" : "border-slate-300")}
+                                        placeholder={isEditing ? "••••••••" : ""}
+                                    />
+                                    {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message as string}</p>}
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                                        <select
+                                            {...register("role")}
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <option value="user">User</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                                        <select
+                                            {...register("status")}
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        >
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
 
-                            <div className="pt-4 flex gap-3 justify-end">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseModal}
-                                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                    {isSubmitting ? "Saving..." : "Save User"}
-                                </button>
-                            </div>
-                        </form>
+                                <div className="pt-4 flex gap-3 justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseModal}
+                                        className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                        {isSubmitting ? "Saving..." : "Save User"}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </AnimatePresence>
+        </PageWrapper>
     );
 }
