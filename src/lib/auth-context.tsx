@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { loginAction, logoutAction } from "@/app/actions/auth-actions";
+import { logoutAction } from "@/app/actions/auth-actions";
 
 export type UserRole = "admin" | "user" | null;
 

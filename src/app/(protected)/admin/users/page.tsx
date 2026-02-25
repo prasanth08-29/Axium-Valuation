@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Users, UserPlus, Shield, Key, X, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,7 +28,6 @@ type UserType = {
 
 export default function AdminUsersPage() {
     const { user, isAuthenticated } = useAuth();
-    const router = useRouter();
     const [mounted, setMounted] = useState(false);
 
     const [usersList, setUsersList] = useState<UserType[]>([]);
@@ -41,6 +39,7 @@ export default function AdminUsersPage() {
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
     const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<CreateUserFormValues | UpdateUserFormValues>({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(isEditing ? updateUserSchema : createUserSchema) as any,
         defaultValues: {
             name: "",
@@ -68,7 +67,7 @@ export default function AdminUsersPage() {
         try {
             const data = await getUsers(search);
             setUsersList(data as UserType[]);
-        } catch (error) {
+        } catch {
             toast.error("Failed to fetch users");
         } finally {
             setIsLoading(false);
@@ -83,7 +82,9 @@ export default function AdminUsersPage() {
                 name: userToEdit.name,
                 username: userToEdit.username,
                 password: "", // Leave blank, only update if typed
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 role: userToEdit.role as any,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 status: userToEdit.status as any,
             });
         } else {
@@ -106,6 +107,7 @@ export default function AdminUsersPage() {
         reset();
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onSubmit = async (data: any) => {
         try {
             if (isEditing && selectedUserId) {
@@ -129,7 +131,7 @@ export default function AdminUsersPage() {
                 await deleteUser(id);
                 toast.success("User deleted successfully");
                 await fetchUsers();
-            } catch (error) {
+            } catch {
                 toast.error("An error occurred while deleting the user.");
             }
         }
@@ -139,14 +141,10 @@ export default function AdminUsersPage() {
         return null;
     }
 
-    import { PageWrapper } from "@/components/ui/page-wrapper";
-
-    // ... further down inside AdminUsersPage return block ...
     return (
         <PageWrapper className="space-y-6 relative">
             <div className="flex items-center justify-between">
                 <div>
-// ... (cutting the rest to avoid massive block replacements, let me just replace the outer div instead)
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
                     <p className="text-slate-500 mt-1">Manage system access and roles</p>
                 </div>

@@ -32,10 +32,13 @@ export async function getValuations() {
   const vals = await db.valuation.findMany({
     orderBy: { createdAt: "desc" },
   });
-  return vals.map((v: any) => ({
-    ...v,
-    dynamicData: v.dynamicData ? JSON.parse(v.dynamicData) : {}
-  }));
+  return vals.map((v: unknown) => {
+    const val = v as { dynamicData: string | null };
+    return {
+      ...(v as object),
+      dynamicData: val.dynamicData ? JSON.parse(val.dynamicData) : {}
+    };
+  });
 }
 
 export async function createValuation(data: {
@@ -101,16 +104,17 @@ export async function deleteValuation(id: string) {
 export async function getTemplates() {
   const templates = await db.template.findMany();
   // Convert array to Record<SectorId, Template> for context compatibility
-  const templateRecord: Record<string, any> = {
+  const templateRecord: Record<string, unknown> = {
     bank: null,
     individual: null,
     company: null,
   };
 
-  templates.forEach((t: any) => {
-    templateRecord[t.sectorId] = {
-      ...t,
-      fields: JSON.parse(t.fields),
+  templates.forEach((t: unknown) => {
+    const temp = t as { sectorId: string; fields: string };
+    templateRecord[temp.sectorId] = {
+      ...(t as object),
+      fields: JSON.parse(temp.fields),
     };
   });
 
@@ -170,7 +174,7 @@ export async function createUser(data: { name: string; username: string; passwor
 }
 
 export async function updateUser(id: string, data: { name: string; username: string; password?: string; role: string; status: string }) {
-  const updateData: any = {
+  const updateData: Record<string, string> = {
     name: data.name,
     username: data.username.toLowerCase(),
     role: data.role,
@@ -232,8 +236,6 @@ export async function seedInitialData() {
   for (const sectorId of sectors) {
     const template = await db.template.findUnique({ where: { sectorId } });
     if (!template) {
-      const sector = await db.sector.findUnique({ where: { id: sectorId } });
-      const name = sector?.name || sectorId;
       const code = `
 <div class="valuation-report-content">
   <div class="text-center mb-8">

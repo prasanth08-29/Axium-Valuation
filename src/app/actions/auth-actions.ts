@@ -2,6 +2,7 @@
 
 import { verifyUser } from "./db-actions";
 import { createSession, deleteSession, getSession } from "@/lib/session";
+import { UserRole } from "@/lib/auth-context";
 import { redirect } from "next/navigation";
 
 export async function loginAction(username: string, password: string) {
@@ -11,8 +12,8 @@ export async function loginAction(username: string, password: string) {
         return { error: "Invalid username or password" };
     }
 
-    await createSession(validUser.username, validUser.role as any);
-    return { success: true, user: { username: validUser.username, role: validUser.role as any } };
+    await createSession(validUser.username, validUser.role as UserRole);
+    return { success: true, user: { username: validUser.username, role: validUser.role as UserRole } };
 }
 
 export async function logoutAction() {

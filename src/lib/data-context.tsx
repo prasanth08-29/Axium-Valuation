@@ -50,11 +50,7 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const INITIAL_SECTORS: Sector[] = [
-    { id: "bank", name: "Bank Valuation" },
-    { id: "individual", name: "Individual Valuation" },
-    { id: "company", name: "Company Valuation" },
-];
+
 
 export function DataProvider({ children }: { children: ReactNode }) {
     const [sectors, setSectors] = useState<Sector[]>([]);
@@ -81,7 +77,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             ]);
 
             setSectors(dbSectors);
-            setTemplates(dbTemplates);
+            setTemplates(dbTemplates as Record<SectorId, Template | null>);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setValuations(dbValuations as any); // Cast for simplicity since Prisma dates are precise
         } catch (error) {
             console.error("Failed to load initial data from DB", error);
@@ -150,16 +147,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const addValuation = async (data: Omit<Valuation, "id" | "submissionDate">) => {
         const { createValuation } = await import("@/app/actions/db-actions");
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const newValuation = await createValuation(data as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setValuations((prev) => [newValuation as any, ...prev]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return newValuation as any;
     };
 
     const updateValuationContext = async (id: string, data: Partial<Omit<Valuation, "id" | "submissionDate">>) => {
         const { updateValuation: dbUpdateValuation } = await import("@/app/actions/db-actions");
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updatedValuation = await dbUpdateValuation(id, data as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setValuations(prev => prev.map(v => v.id === id ? updatedValuation as any : v));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return updatedValuation as any;
     };
 
@@ -207,14 +210,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return (
         <DataContext.Provider value={{
             sectors, templates, valuations,
-            uploadTemplate, saveTemplate: saveTemplate as any,
+            uploadTemplate,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            saveTemplate: saveTemplate as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             saveTemplateHTML: saveTemplateHTML as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             deleteTemplate: deleteTemplate as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             addValuation: addValuation as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             updateValuation: updateValuationContext as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             deleteValuation: deleteValuationContext as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             addSector: addSector as any,
-            updateSector, deleteSector: deleteSector as any,
+            updateSector,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            deleteSector: deleteSector as any,
             refreshData
         }}>
             {children}

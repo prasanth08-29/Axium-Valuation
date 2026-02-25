@@ -34,6 +34,7 @@ export default function ReportPage({ params }: PageProps) {
                 notes: valuation.notes,
                 dynamicData: valuation.dynamicData
             });
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setMergedHtml(merged);
         }
     }, [template, valuation]);

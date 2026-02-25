@@ -4,7 +4,7 @@ import { useData, SectorId } from "@/lib/data-context";
 import { Code, FileText, CheckCircle, Save, Trash2, Eye, AlertCircle } from "lucide-react";
 import { useState } from "react";
 
-const DEFAULT_CODE = (sectorName: string) => `
+const DEFAULT_CODE = (_sectorName: string) => `
 <div class="valuation-report-content">
   <div class="text-center mb-8">
     <h2 class="text-xl font-bold uppercase tracking-widest border-b-2 border-black inline-block pb-1">Valuation Report</h2>

@@ -42,7 +42,7 @@ export default function LoginPage() {
             } else {
                 setGlobalError(result.error || "Invalid username or password.");
             }
-        } catch (error) {
+        } catch {
             setGlobalError("An error occurred during sign in.");
         } finally {
             setIsLoading(false);

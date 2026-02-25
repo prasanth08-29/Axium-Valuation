@@ -1,7 +1,7 @@
 "use client";
 
 import { useData, SectorId } from "@/lib/data-context";
-import { Plus, Trash2, Edit2, Save, X, AlertTriangle, Layers } from "lucide-react";
+import { Plus, Save, X, AlertTriangle, Layers } from "lucide-react";
 import { useState } from "react";
 
 export default function SectorsPage() {

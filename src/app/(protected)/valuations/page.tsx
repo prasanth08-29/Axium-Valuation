@@ -8,11 +8,8 @@ import {
     Filter,
     FileText,
     ChevronRight,
-    Calendar,
     User,
     MapPin,
-    MoreHorizontal,
-    Download,
     Eye,
     Trash2
 } from "lucide-react";

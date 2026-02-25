@@ -35,6 +35,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <AuthProvider initialUser={user as any}>
           <DataProvider>{children}</DataProvider>
         </AuthProvider>
