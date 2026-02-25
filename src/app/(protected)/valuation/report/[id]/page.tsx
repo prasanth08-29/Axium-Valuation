@@ -185,9 +185,9 @@ export default function ReportPage({ params }: PageProps) {
                                         </tr>
                                         <tr>
                                             <td className="border border-black px-2 py-1 text-center text-sm">11</td>
-                                            <td className="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount ($)</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount (₹)</td>
                                             <td className="border border-black px-2 py-1 text-lg font-bold">
-                                                ${valuation.valuationAmount.toLocaleString()}
+                                                ₹{valuation.valuationAmount.toLocaleString()}
                                             </td>
                                         </tr>
                                     </tbody>

@@ -88,7 +88,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <p className="text-sm font-semibold text-gray-500">Total Amount</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">${stats.totalAmount.toLocaleString()}</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">₹{stats.totalAmount.toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                                             {val.valuationDate}
                                         </td>
                                         <td className="whitespace-nowrap px-3 py-5 text-sm font-bold text-gray-900 tracking-tight">
-                                            ${val.valuationAmount.toLocaleString()}
+                                            ₹{val.valuationAmount.toLocaleString()}
                                         </td>
                                         <td className="whitespace-nowrap px-3 py-5 text-sm">
                                             <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${val.status === 'Completed'

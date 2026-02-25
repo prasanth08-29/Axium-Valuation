@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { toast } from "sonner";
 
 export type SectorId = string;
 
@@ -180,7 +181,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const id = name.toLowerCase().replace(/\s+/g, "-");
 
         if (sectors.some(s => s.id === id)) {
-            alert("A sector with this name already exists.");
+            toast.error("A sector with this name already exists.");
             return;
         }
 

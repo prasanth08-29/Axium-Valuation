@@ -1,14 +1,14 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { Edit, Key, Shield, Trash2, UserPlus, Users, X, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Edit, Key, Shield, Trash2, UserPlus, Users, X, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { getUsers, createUser, updateUser, deleteUser } from "@/app/actions/db-actions";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 import { createUserSchema, updateUserSchema, CreateUserFormValues, UpdateUserFormValues } from "@/lib/schemas";
 
 import { Skeleton } from "@/components/ui/skeleton";

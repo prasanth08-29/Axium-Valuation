@@ -2,6 +2,7 @@
 
 import { useData, SectorId } from "@/lib/data-context";
 import { Code, FileText, CheckCircle, Save, Trash2, Eye, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { useState } from "react";
 
 const DEFAULT_CODE = (_sectorName: string) => `
@@ -89,7 +90,7 @@ const DEFAULT_CODE = (_sectorName: string) => `
       </tr>
       <tr>
         <td class="border border-black px-2 py-1 text-center">11</td>
-        <td class="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount ($)</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount (₹)</td>
         <td class="border border-black px-2 py-1">
           <input type="number" name="valuationAmount" class="w-full border border-gray-300 rounded px-2 py-1 font-bold" placeholder="0" required>
         </td>
@@ -133,7 +134,7 @@ export default function TemplatesPage() {
     }
 
     saveTemplate(sectorId, code, fields);
-    alert("Saved!");
+    toast.success("Template saved successfully!");
   };
 
   const handleDelete = (sectorId: SectorId) => {

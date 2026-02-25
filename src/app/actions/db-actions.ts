@@ -321,7 +321,7 @@ export async function seedInitialData() {
       </tr>
       <tr>
         <td class="border border-black px-2 py-1 text-center">11</td>
-        <td class="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount ($)</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount (₹)</td>
         <td class="border border-black px-2 py-1">
           <input type="number" name="valuationAmount" class="w-full border border-gray-300 rounded px-2 py-1 font-bold" placeholder="0" required>
         </td>

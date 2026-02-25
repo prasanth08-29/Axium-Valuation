@@ -115,7 +115,7 @@ export default function ValuationsListPage() {
                                         </span>
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-5">
-                                        <div className="text-sm font-bold text-gray-900 tracking-tight">${val.valuationAmount.toLocaleString()}</div>
+                                        <div className="text-sm font-bold text-gray-900 tracking-tight">₹{val.valuationAmount.toLocaleString()}</div>
                                         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wide mt-1">Property Value</div>
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 font-bold tracking-tight">

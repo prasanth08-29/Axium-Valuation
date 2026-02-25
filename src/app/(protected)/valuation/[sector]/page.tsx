@@ -370,11 +370,11 @@ export default function ValuationPage({ params }: PageProps) {
                             <div className="p-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
                                     <label htmlFor="valuationAmount" className="block text-sm font-medium leading-6 text-gray-900">
-                                        Valuation Amount ($)
+                                        Valuation Amount (₹)
                                     </label>
                                     <div className="mt-2 relative rounded-md shadow-sm">
                                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                            <span className="text-gray-500 sm:text-sm">$</span>
+                                            <span className="text-gray-500 sm:text-sm">₹</span>
                                         </div>
                                         <input
                                             type="number"
