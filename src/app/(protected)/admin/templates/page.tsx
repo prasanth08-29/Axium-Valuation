@@ -165,10 +165,10 @@ export default function TemplatesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPreviewMode(!previewMode)}
-                    className={`px - 3 py - 1.5 text - sm font - medium rounded - md transition - colors flex items - center gap - 2 ${previewMode
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${previewMode
                       ? "bg-indigo-100 text-indigo-700"
                       : "text-gray-600 hover:bg-gray-100"
-                      } `}
+                      }`}
                   >
                     <Eye className="h-4 w-4" />
                     {previewMode ? "Edit Code" : "Preview"}
@@ -192,7 +192,7 @@ export default function TemplatesPage() {
 
               <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
                 {/* Code Editor */}
-                <div className={`flex - 1 flex flex - col border - r border - gray - 200 ${previewMode ? "hidden md:flex md:w-1/2" : "w-full"} `}>
+                <div className={`flex-1 flex flex-col border-r border-gray-200 ${previewMode ? "hidden md:flex md:w-1/2" : "w-full"}`}>
                   <div className="bg-gray-900 text-gray-400 text-xs px-4 py-2 border-b border-gray-800 font-mono flex items-center justify-between">
                     <span>HTML / CSS / JS Editor</span>
                     <div className="flex gap-2">
@@ -236,7 +236,7 @@ export default function TemplatesPage() {
                 </div>
 
                 {/* Preview */}
-                <div className={`flex - 1 flex flex - col bg - gray - 50 ${!previewMode ? "hidden md:flex md:w-1/2" : "w-full overflow-y-auto"} `}>
+                <div className={`flex-1 flex flex-col bg-gray-50 ${!previewMode ? "hidden md:flex md:w-1/2" : "w-full overflow-y-auto"}`}>
                   <div className="bg-white border-b border-gray-200 text-gray-500 text-xs px-4 py-2 relative">
                     Live Preview
                   </div>
