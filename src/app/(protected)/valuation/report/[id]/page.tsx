@@ -90,91 +90,91 @@ export default function ReportPage({ params }: PageProps) {
                             />
                         ) : (
                             <div className="valuation-report-content">
-                                <div className="text-center mb-8">
+                                <div className="text-center mb-4">
                                     <h2 className="text-xl font-bold uppercase tracking-widest border-b-2 border-black inline-block pb-1">Valuation Report</h2>
                                 </div>
 
-                                <table className="w-full border-collapse border-2 border-black mb-8">
+                                <table className="w-full border-collapse border-2 border-black mb-4">
                                     <thead>
                                         <tr>
-                                            <th colSpan={3} className="bg-gray-100 border border-black px-4 py-2 text-left font-bold uppercase text-sm">GENERAL INFORMATION</th>
+                                            <th colSpan={3} className="bg-gray-100 border border-black px-2 py-1 text-left font-bold uppercase text-sm">GENERAL INFORMATION</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center w-12 text-sm">1</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Name of the party/owner</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center w-12 text-sm">1</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Name of the party/owner</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.clientName}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">2</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Address of the property</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">2</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Address of the property</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.propertyAddress}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">3</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Name/s of reported owner & registration details</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">3</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Name/s of reported owner & registration details</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.dynamicData?.reportedOwner || "N/A"}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">4</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Purpose of valuation</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">4</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Purpose of valuation</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.dynamicData?.valuationPurpose || "N/A"}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">5</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">List of documents produced</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">5</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">List of documents produced</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.dynamicData?.documentsProduced || "N/A"}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">6</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Date of inspection</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">6</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Date of inspection</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.dynamicData?.inspectionDate || "N/A"}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">7</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Date of valuation</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">7</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Date of valuation</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.valuationDate}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">8</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Distance from branch</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">8</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Distance from branch</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.dynamicData?.branchDistance || "N/A"}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">9</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Situation/location description</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">9</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Situation/location description</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.dynamicData?.locationDescription || "N/A"}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">10</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold">Latitude & Longitude</td>
-                                            <td className="border border-black px-4 py-2 text-sm">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">10</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold">Latitude & Longitude</td>
+                                            <td className="border border-black px-2 py-1 text-sm">
                                                 {valuation.dynamicData?.latLong || "N/A"}
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="border border-black px-4 py-2 text-center text-sm">11</td>
-                                            <td className="border border-black px-4 py-2 text-sm font-semibold italic">Valuation Amount ($)</td>
-                                            <td className="border border-black px-4 py-2 text-lg font-bold">
+                                            <td className="border border-black px-2 py-1 text-center text-sm">11</td>
+                                            <td className="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount ($)</td>
+                                            <td className="border border-black px-2 py-1 text-lg font-bold">
                                                 ${valuation.valuationAmount.toLocaleString()}
                                             </td>
                                         </tr>
