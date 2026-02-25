@@ -187,11 +187,12 @@ export default function ValuationPage({ params }: PageProps) {
         // Capture dynamic data from the form directly for HTML templates
         const form = new FormData(e.currentTarget);
         const capturedDynamicData = { ...formData.dynamicData };
-        let clientName = formData.clientName || "Untitled Valuation";
-        let propertyAddress = formData.propertyAddress || "";
-        let valuationAmountStr = formData.valuationAmount?.toString() || "0";
-        let valuationDate = formData.valuationDate || new Date().toISOString().split('T')[0];
-        let notes = formData.notes || "";
+        // Grab default values from the native form submission first 
+        let clientName = form.get('clientName')?.toString() || formData.clientName || "Untitled Valuation";
+        let propertyAddress = form.get('propertyAddress')?.toString() || formData.propertyAddress || "";
+        let valuationAmountStr = form.get('valuationAmount')?.toString() || formData.valuationAmount?.toString() || "0";
+        let valuationDate = form.get('valuationDate')?.toString() || formData.valuationDate || new Date().toISOString().split('T')[0];
+        let notes = form.get('notes')?.toString() || formData.notes || "";
 
         // Find out which button was clicked
         const submitAction = (e.nativeEvent as SubmitEvent).submitter?.getAttribute('value') || "completed";
@@ -216,24 +217,16 @@ export default function ValuationPage({ params }: PageProps) {
                             if (!(input as HTMLInputElement).checked) return; // Skip unchecked
                         }
                     }
-                    console.log(`[Form HTMLScraper] Found input: ${name} = ${val}`);
 
                     // Map to appropriate field
-                    if (name === 'clientName') clientName = val;
-                    else if (name === 'propertyAddress') propertyAddress = val;
-                    else if (name === 'valuationAmount') valuationAmountStr = val;
-                    else if (name === 'valuationDate') valuationDate = val;
-                    else if (name === 'notes') notes = val;
+                    if (name === 'clientName' && val) clientName = val;
+                    else if (name === 'propertyAddress' && val) propertyAddress = val;
+                    else if (name === 'valuationAmount' && val) valuationAmountStr = val;
+                    else if (name === 'valuationDate' && val) valuationDate = val;
+                    else if (name === 'notes' && val) notes = val;
                     else if (name !== 'submitAction') capturedDynamicData[name] = val;
                 });
             }
-        } else {
-            // Standard static fields form
-            clientName = form.get('clientName')?.toString() || clientName;
-            propertyAddress = form.get('propertyAddress')?.toString() || propertyAddress;
-            valuationAmountStr = form.get('valuationAmount')?.toString() || valuationAmountStr;
-            valuationDate = form.get('valuationDate')?.toString() || valuationDate;
-            notes = form.get('notes')?.toString() || notes;
         }
 
         setSubmitting(true);
