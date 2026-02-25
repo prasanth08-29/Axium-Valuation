@@ -113,10 +113,12 @@ export default function AdminUsersPage() {
     const onSubmit = async (data: any) => {
         try {
             if (isEditing && selectedUserId) {
-                await updateUser(selectedUserId, data);
+                const res = await updateUser(selectedUserId, data);
+                if (!res.success) throw new Error(res.error);
                 toast.success("User updated successfully");
             } else {
-                await createUser(data);
+                const res = await createUser(data);
+                if (!res.success) throw new Error(res.error);
                 toast.success("User created successfully");
             }
             await fetchUsers();

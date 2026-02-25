@@ -160,37 +160,47 @@ export async function getUsers(search?: string) {
 }
 
 export async function createUser(data: { name: string; username: string; password?: string; role: string; status: string }) {
-  const user = await db.user.create({
-    data: {
-      name: data.name,
-      username: data.username.toLowerCase(),
-      password: data.password || "password123", // Default password if none provided
-      role: data.role,
-      status: data.status,
-    }
-  });
-  revalidatePath("/admin/users");
-  return user;
+  try {
+    const user = await db.user.create({
+      data: {
+        name: data.name,
+        username: data.username.toLowerCase(),
+        password: data.password || "password123", // Default password if none provided
+        role: data.role,
+        status: data.status,
+      }
+    });
+    revalidatePath("/admin/users");
+    return { success: true, user };
+  } catch (err: any) {
+    if (err.code === 'P2002') return { success: false, error: "Username is already taken." };
+    return { success: false, error: err.message || "Failed to create user." };
+  }
 }
 
 export async function updateUser(id: string, data: { name: string; username: string; password?: string; role: string; status: string }) {
-  const updateData: Record<string, string> = {
-    name: data.name,
-    username: data.username.toLowerCase(),
-    role: data.role,
-    status: data.status,
-  };
+  try {
+    const updateData: Record<string, string> = {
+      name: data.name,
+      username: data.username.toLowerCase(),
+      role: data.role,
+      status: data.status,
+    };
 
-  if (data.password && data.password.trim() !== "") {
-    updateData.password = data.password;
+    if (data.password && data.password.trim() !== "") {
+      updateData.password = data.password;
+    }
+
+    const user = await db.user.update({
+      where: { id },
+      data: updateData,
+    });
+    revalidatePath("/admin/users");
+    return { success: true, user };
+  } catch (err: any) {
+    if (err.code === 'P2002') return { success: false, error: "Username is already taken." };
+    return { success: false, error: err.message || "Failed to update user." };
   }
-
-  const user = await db.user.update({
-    where: { id },
-    data: updateData,
-  });
-  revalidatePath("/admin/users");
-  return user;
 }
 
 export async function deleteUser(id: string) {
