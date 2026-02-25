@@ -121,9 +121,9 @@ export default function AdminUsersPage() {
             }
             await fetchUsers();
             handleCloseModal();
-        } catch (error) {
-            console.error(error);
-            toast.error("An error occurred while saving the user.");
+        } catch (error: any) {
+            console.error("User creation error:", error);
+            toast.error(error?.message || "An error occurred while saving the user.");
         }
     };
 

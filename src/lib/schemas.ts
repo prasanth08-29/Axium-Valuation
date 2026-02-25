@@ -18,7 +18,7 @@ export const createUserSchema = z.object({
     username: z.string().min(3, "Username must be at least 3 characters").max(50),
     role: userRoleSchema,
     status: z.enum(["active", "inactive"]).default("active"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
 });
 
 export const updateUserSchema = createUserSchema.extend({
