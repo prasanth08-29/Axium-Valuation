@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
+import { Edit, Key, Shield, Trash2, UserPlus, Users, X, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Users, UserPlus, Shield, Key, X, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getUsers, createUser, updateUser, deleteUser } from "@/app/actions/db-actions";
 
@@ -37,6 +37,7 @@ export default function AdminUsersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<CreateUserFormValues | UpdateUserFormValues>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -104,6 +105,7 @@ export default function AdminUsersPage() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedUserId(null);
+        setShowPassword(false);
         reset();
     };
 
@@ -339,7 +341,7 @@ export default function AdminUsersPage() {
                                     <input
                                         type="text"
                                         {...register("name")}
-                                        className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.name ? "border-red-500" : "border-slate-300")}
+                                        className={cn("w-full rounded-lg border text-slate-900 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.name ? "border-red-500" : "border-slate-300")}
                                     />
                                     {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message as string}</p>}
                                 </div>
@@ -348,7 +350,7 @@ export default function AdminUsersPage() {
                                     <input
                                         type="text"
                                         {...register("username")}
-                                        className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.username ? "border-red-500" : "border-slate-300")}
+                                        className={cn("w-full rounded-lg border text-slate-900 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.username ? "border-red-500" : "border-slate-300")}
                                     />
                                     {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message as string}</p>}
                                 </div>
@@ -356,12 +358,22 @@ export default function AdminUsersPage() {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">
                                         Password {isEditing && <span className="text-slate-400 font-normal">(Leave blank to keep current)</span>}
                                     </label>
-                                    <input
-                                        type="password"
-                                        {...register("password")}
-                                        className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.password ? "border-red-500" : "border-slate-300")}
-                                        placeholder={isEditing ? "••••••••" : ""}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            {...register("password")}
+                                            className={cn("w-full rounded-lg border text-slate-900 bg-white px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.password ? "border-red-500" : "border-slate-300")}
+                                            placeholder={isEditing ? "••••••••" : ""}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            tabIndex={-1}
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                     {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message as string}</p>}
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -369,7 +381,7 @@ export default function AdminUsersPage() {
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
                                         <select
                                             {...register("role")}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full rounded-lg border border-slate-300 text-slate-900 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <option value="user">User</option>
                                             <option value="admin">Admin</option>
@@ -379,7 +391,7 @@ export default function AdminUsersPage() {
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
                                         <select
                                             {...register("status")}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full rounded-lg border border-slate-300 text-slate-900 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         >
                                             <option value="active">Active</option>
                                             <option value="inactive">Inactive</option>
