@@ -113,6 +113,48 @@ export function mergeDataWithTemplate(templateHtml: string, data: ReportData, is
  * This uses the simple MIME-type trick which is compatible with MS Word.
  */
 export function downloadAsWord(htmlContent: string, fileName: string) {
+    let processHtml = htmlContent;
+
+    // Convert form elements to plain text spans for better Word compatibility
+    if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
+
+        const formElements = doc.querySelectorAll('input, textarea, select');
+        formElements.forEach(el => {
+            let value = '';
+
+            if (el.tagName === 'INPUT') {
+                const input = el as HTMLInputElement;
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    value = input.hasAttribute('checked') || input.checked ? '[X]' : '[ ]';
+                } else {
+                    value = input.getAttribute('value') || input.value || '';
+                }
+            } else if (el.tagName === 'TEXTAREA') {
+                const textarea = el as HTMLTextAreaElement;
+                value = textarea.innerHTML || textarea.value || '';
+            } else if (el.tagName === 'SELECT') {
+                const select = el as HTMLSelectElement;
+                const selectedOpt = select.querySelector('option[selected]') as HTMLOptionElement;
+                if (selectedOpt) {
+                    value = selectedOpt.textContent || selectedOpt.value || '';
+                } else if (select.options && select.options.length > 0 && select.selectedIndex >= 0) {
+                    value = select.options[select.selectedIndex].textContent || '';
+                }
+            }
+
+            const span = doc.createElement('span');
+            span.style.fontWeight = 'bold';
+            // Replace newlines with <br> tags for textareas
+            span.innerHTML = value.replace(/\n/g, '<br/>');
+
+            el.parentNode?.replaceChild(span, el);
+        });
+
+        processHtml = doc.body.innerHTML;
+    }
+
     const header = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' 
           xmlns:w='urn:schemas-microsoft-com:office:word' 
@@ -126,7 +168,7 @@ export function downloadAsWord(htmlContent: string, fileName: string) {
     </head>
     <body>`;
     const footer = "</body></html>";
-    const sourceHTML = header + htmlContent + footer;
+    const sourceHTML = header + processHtml + footer;
 
     const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
     const fileDownload = document.createElement("a");
