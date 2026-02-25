@@ -220,21 +220,7 @@ export default function ReportPage({ params }: PageProps) {
                             </div>
                         )}
 
-                        {/* Property Photos Rended at Bottom */}
-                        {parsedPhotos.length > 0 && (
-                            <div className="mt-12 pt-8 print:break-before-page">
-                                <h3 className="text-sm font-bold uppercase tracking-widest border-b-2 border-slate-800 pb-2 mb-6">
-                                    Property Photos
-                                </h3>
-                                <div className="grid grid-cols-2 gap-6">
-                                    {parsedPhotos.map(p => (
-                                        <div key={p.id} className="border border-slate-200 p-2 rounded-xl bg-slate-50 flex items-center justify-center break-inside-avoid">
-                                            <img src={p.dataUrl} alt="Property" className="max-w-full h-auto max-h-[400px] object-contain rounded-lg shadow-sm mx-auto block" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+
                     </div>
                 </div>
             </main>
