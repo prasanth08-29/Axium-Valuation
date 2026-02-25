@@ -1,11 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { loginAction, logoutAction } from "@/app/actions/auth-actions";
 
-type UserRole = "admin" | "user" | null;
+export type UserRole = "admin" | "user" | null;
 
-interface User {
+export interface User {
     username: string;
     role: UserRole;
 }
@@ -19,35 +20,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children, initialUser }: { children: ReactNode, initialUser: User | null }) {
+    const [user, setUser] = useState<User | null>(initialUser);
     const router = useRouter();
 
-    // Load user from localStorage on mount (simple persistence for demo)
-    useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
-
     const login = async (username: string, role: UserRole) => {
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        const newUser = { username, role };
-        setUser(newUser);
-        localStorage.setItem("user", JSON.stringify(newUser));
+        // Handled by loginAction now, just setting local state for immediate UI reflection
+        setUser({ username, role });
         router.push("/dashboard");
     };
 
     const logout = async () => {
-        // Simulate network delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
         setUser(null);
-        localStorage.removeItem("user");
-        router.push("/login");
+        await logoutAction(); // Handles cookie deletion and redirect
     };
 
     const isAuthenticated = !!user;

@@ -21,7 +21,12 @@ export const createUserSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+export const updateUserSchema = createUserSchema.extend({
+    password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
+});
+
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;
+export type UpdateUserFormValues = z.infer<typeof updateUserSchema>;
 
 // --- Valuation Schemas ---
 

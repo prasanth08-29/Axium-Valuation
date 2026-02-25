@@ -142,9 +142,16 @@ export async function deleteTemplate(sectorId: string) {
 }
 
 // --- User Actions ---
-export async function getUsers() {
+export async function getUsers(search?: string) {
   return await db.user.findMany({
-    orderBy: { createdAt: 'desc' }
+    where: search ? {
+      OR: [
+        { name: { contains: search } },
+        { username: { contains: search } }
+      ]
+    } : undefined,
+    orderBy: { createdAt: 'desc' },
+    take: 50, // Limit to 50 for performance
   });
 }
 

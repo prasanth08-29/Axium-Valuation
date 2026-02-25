@@ -7,6 +7,11 @@ import { Users, UserPlus, Shield, Key, X, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getUsers, createUser, updateUser, deleteUser } from "@/app/actions/db-actions";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { createUserSchema, updateUserSchema, CreateUserFormValues, UpdateUserFormValues } from "@/lib/schemas";
+
 type UserType = {
     id: string;
     name: string;
@@ -30,32 +35,36 @@ export default function AdminUsersPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-    // Form state
-    const [formData, setFormData] = useState({
-        name: "",
-        username: "",
-        password: "",
-        role: "user",
-        status: "active"
+    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<CreateUserFormValues | UpdateUserFormValues>({
+        resolver: zodResolver(isEditing ? updateUserSchema : createUserSchema) as any,
+        defaultValues: {
+            name: "",
+            username: "",
+            password: "",
+            role: "user",
+            status: "active"
+        }
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated || user?.role !== "admin") {
-            router.push("/dashboard");
-        } else {
-            fetchUsers();
+        if (isAuthenticated && user?.role === "admin") {
+            const delayDebounceFn = setTimeout(() => {
+                fetchUsers(searchTerm);
+            }, 500);
+            return () => clearTimeout(delayDebounceFn);
         }
-    }, [isAuthenticated, user, router]);
+    }, [isAuthenticated, user, searchTerm]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (search = "") => {
         setIsLoading(true);
         try {
-            const data = await getUsers();
+            const data = await getUsers(search);
             setUsersList(data as UserType[]);
         } catch (error) {
-            console.error("Failed to fetch users", error);
+            toast.error("Failed to fetch users");
         } finally {
             setIsLoading(false);
         }
@@ -65,17 +74,17 @@ export default function AdminUsersPage() {
         if (userToEdit) {
             setIsEditing(true);
             setSelectedUserId(userToEdit.id);
-            setFormData({
+            reset({
                 name: userToEdit.name,
                 username: userToEdit.username,
                 password: "", // Leave blank, only update if typed
-                role: userToEdit.role,
-                status: userToEdit.status,
+                role: userToEdit.role as any,
+                status: userToEdit.status as any,
             });
         } else {
             setIsEditing(false);
             setSelectedUserId(null);
-            setFormData({
+            reset({
                 name: "",
                 username: "",
                 password: "",
@@ -89,29 +98,23 @@ export default function AdminUsersPage() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedUserId(null);
+        reset();
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+    const onSubmit = async (data: any) => {
         try {
             if (isEditing && selectedUserId) {
-                await updateUser(selectedUserId, formData);
+                await updateUser(selectedUserId, data);
+                toast.success("User updated successfully");
             } else {
-                if (!formData.password) {
-                    alert("Password is required for new users.");
-                    setIsSubmitting(false);
-                    return;
-                }
-                await createUser(formData);
+                await createUser(data);
+                toast.success("User created successfully");
             }
             await fetchUsers();
             handleCloseModal();
         } catch (error) {
-            console.error("Failed to save user", error);
-            alert("An error occurred while saving the user.");
-        } finally {
-            setIsSubmitting(false);
+            console.error(error);
+            toast.error("An error occurred while saving the user.");
         }
     };
 
@@ -119,15 +122,15 @@ export default function AdminUsersPage() {
         if (confirm(`Are you sure you want to delete user ${name}?`)) {
             try {
                 await deleteUser(id);
+                toast.success("User deleted successfully");
                 await fetchUsers();
             } catch (error) {
-                console.error("Failed to delete user", error);
-                alert("An error occurred while deleting the user.");
+                toast.error("An error occurred while deleting the user.");
             }
         }
     };
 
-    if (!mounted || !user || user.role !== "admin") {
+    if (!mounted || !user) {
         return null;
     }
 
@@ -138,13 +141,22 @@ export default function AdminUsersPage() {
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">User Management</h1>
                     <p className="text-slate-500 mt-1">Manage system access and roles</p>
                 </div>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-indigo-500/20"
-                >
-                    <UserPlus className="w-4 h-4" />
-                    Add User
-                </button>
+                <div className="flex items-center gap-4">
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="px-4 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
+                    />
+                    <button
+                        onClick={() => handleOpenModal()}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-indigo-500/20"
+                    >
+                        <UserPlus className="w-4 h-4" />
+                        Add User
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -283,30 +295,28 @@ export default function AdminUsersPage() {
                             <h3 className="text-lg font-bold text-slate-900">
                                 {isEditing ? "Edit User" : "Add New User"}
                             </h3>
-                            <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600">
+                            <button type="button" onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
                                 <input
                                     type="text"
-                                    required
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    {...register("name")}
+                                    className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.name ? "border-red-500" : "border-slate-300")}
                                 />
+                                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message as string}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
                                 <input
                                     type="text"
-                                    required
-                                    value={formData.username}
-                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    {...register("username")}
+                                    className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.username ? "border-red-500" : "border-slate-300")}
                                 />
+                                {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username.message as string}</p>}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -314,19 +324,17 @@ export default function AdminUsersPage() {
                                 </label>
                                 <input
                                     type="password"
-                                    required={!isEditing}
-                                    value={formData.password}
-                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    {...register("password")}
+                                    className={cn("w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500", errors.password ? "border-red-500" : "border-slate-300")}
                                     placeholder={isEditing ? "••••••••" : ""}
                                 />
+                                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message as string}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
                                     <select
-                                        value={formData.role}
-                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                        {...register("role")}
                                         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     >
                                         <option value="user">User</option>
@@ -336,8 +344,7 @@ export default function AdminUsersPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
                                     <select
-                                        value={formData.status}
-                                        onChange={e => setFormData({ ...formData, status: e.target.value })}
+                                        {...register("status")}
                                         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     >
                                         <option value="active">Active</option>
@@ -369,4 +376,3 @@ export default function AdminUsersPage() {
         </div>
     );
 }
-

@@ -7,11 +7,13 @@ import { loginSchema, LoginFormValues } from "@/lib/schemas";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Lock, User } from "lucide-react";
-import { verifyUser } from "@/app/actions/db-actions";
+import { loginAction } from "@/app/actions/auth-actions";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
     const { login } = useAuth();
+    const router = useRouter();
     const [globalError, setGlobalError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -32,12 +34,13 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            const validUser = await verifyUser(data.username, data.password);
+            const result = await loginAction(data.username, data.password);
 
-            if (validUser) {
-                await login(validUser.username, validUser.role as any);
+            if (result.success && result.user) {
+                await login(result.user.username, result.user.role);
+                router.refresh(); // Ensure server components re-fetch session
             } else {
-                setGlobalError("Invalid username or password.");
+                setGlobalError(result.error || "Invalid username or password.");
             }
         } catch (error) {
             setGlobalError("An error occurred during sign in.");
