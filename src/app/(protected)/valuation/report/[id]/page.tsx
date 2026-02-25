@@ -23,6 +23,7 @@ export default function ReportPage({ params }: PageProps) {
 
     const template = templates[valuation.sectorId];
     const [mergedHtml, setMergedHtml] = useState<string>("");
+    const [parsedPhotos, setParsedPhotos] = useState<{ id: string, dataUrl: string }[]>([]);
 
     useEffect(() => {
         if (template) {
@@ -36,6 +37,18 @@ export default function ReportPage({ params }: PageProps) {
             });
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setMergedHtml(merged);
+        }
+
+        if (valuation.dynamicData && typeof valuation.dynamicData === 'object' && 'app_photos' in valuation.dynamicData) {
+            try {
+                const photos = JSON.parse(valuation.dynamicData.app_photos as string);
+                if (Array.isArray(photos)) {
+                    // eslint-disable-next-line react-hooks/set-state-in-effect
+                    setParsedPhotos(photos);
+                }
+            } catch (e) {
+                console.error("Failed to parse photos from draft", e);
+            }
         }
     }, [template, valuation]);
 
@@ -61,7 +74,7 @@ export default function ReportPage({ params }: PageProps) {
 
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => downloadAsWord(mergedHtml, `Valuation_Report_${valuation.clientName}`)}
+                            onClick={() => downloadAsWord(reportRef.current?.innerHTML || "", `Valuation_Report_${valuation.clientName}`)}
                             className="flex items-center gap-2 px-4 py-2 bg-white text-slate-700 font-bold text-xs rounded-xl shadow-sm ring-1 ring-slate-200 hover:ring-indigo-500/30 hover:bg-slate-50 transition-all font-sans"
                         >
                             <Download className="h-4 w-4 text-indigo-500" />
@@ -81,10 +94,9 @@ export default function ReportPage({ params }: PageProps) {
             {/* Content Area */}
             <main className="max-w-[1000px] mx-auto py-10 px-4 sm:px-6 lg:px-8 print:p-0">
                 <div className="bg-white shadow-xl shadow-slate-200/50 ring-1 ring-slate-200 rounded-2xl overflow-hidden print:shadow-none print:ring-0 print:m-0 print:rounded-none">
-                    <div className="min-h-[29.7cm] p-8 sm:p-12 print:p-0 report-view-mode">
+                    <div className="min-h-[29.7cm] p-8 sm:p-12 print:p-0 report-view-mode" ref={reportRef}>
                         {template ? (
                             <div
-                                ref={reportRef}
                                 className="valuation-report-content max-w-none"
                                 dangerouslySetInnerHTML={{ __html: mergedHtml }}
                             />
@@ -205,6 +217,22 @@ export default function ReportPage({ params }: PageProps) {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* Property Photos Rended at Bottom */}
+                        {parsedPhotos.length > 0 && (
+                            <div className="mt-12 pt-8 print:break-before-page">
+                                <h3 className="text-sm font-bold uppercase tracking-widest border-b-2 border-slate-800 pb-2 mb-6">
+                                    Property Photos
+                                </h3>
+                                <div className="grid grid-cols-2 gap-6">
+                                    {parsedPhotos.map(p => (
+                                        <div key={p.id} className="border border-slate-200 p-2 rounded-xl bg-slate-50 flex items-center justify-center break-inside-avoid">
+                                            <img src={p.dataUrl} alt="Property" className="max-w-full h-auto max-h-[400px] object-contain rounded-lg shadow-sm mx-auto block" />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

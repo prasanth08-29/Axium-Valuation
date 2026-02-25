@@ -88,3 +88,51 @@ body {
 .valuation-report-content textarea {
   height: 2rem !important;
 }
+
+/* Mobile Optimization for Valuation Tables */
+@media (max-width: 640px) {
+
+  .valuation-report-content table,
+  .valuation-report-content thead,
+  .valuation-report-content tbody,
+  .valuation-report-content th,
+  .valuation-report-content td,
+  .valuation-report-content tr {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Hide table headers on mobile (since they describe columns we stacked) */
+  .valuation-report-content thead tr {
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+  }
+
+  .valuation-report-content tr {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.5rem !important;
+    margin-bottom: 1rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .valuation-report-content td {
+    border: none !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    position: relative !important;
+    padding: 0.75rem !important;
+    text-align: left !important;
+  }
+
+  .valuation-report-content td:last-child {
+    border-bottom: none !important;
+    background-color: #f8fafc !important;
+    /* give inputs a slight background offset on mobile */
+  }
+
+  /* Hide the numbering column typically in td:first-child */
+  .valuation-report-content td:first-child:not(:nth-last-child(2)) {
+    display: none !important;
+  }
+}

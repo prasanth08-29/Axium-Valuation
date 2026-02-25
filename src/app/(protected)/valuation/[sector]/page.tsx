@@ -3,7 +3,7 @@
 import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { use, useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, User, Home, Calendar, FileText, Layers } from "lucide-react";
+import { ArrowLeft, CheckCircle2, User, Home, Calendar, FileText, Layers, Camera, ImagePlus, X } from "lucide-react";
 import { useData, SectorId } from "@/lib/data-context";
 import { REPORT_STYLES, mergeDataWithTemplate } from "@/lib/report-generator";
 
@@ -21,6 +21,9 @@ export default function ValuationPage({ params }: PageProps) {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
+
+    // Photos State
+    const [photos, setPhotos] = useState<{ id: string, dataUrl: string }[]>([]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -51,6 +54,18 @@ export default function ValuationPage({ params }: PageProps) {
                     notes: draft.notes || "",
                     dynamicData: (draft.dynamicData as Record<string, string>) || {}
                 });
+
+                if (draft.dynamicData && typeof draft.dynamicData === 'object' && 'app_photos' in draft.dynamicData) {
+                    try {
+                        const parsedPhotos = JSON.parse(draft.dynamicData.app_photos as string);
+                        if (Array.isArray(parsedPhotos)) {
+                            // eslint-disable-next-line react-hooks/set-state-in-effect
+                            setPhotos(parsedPhotos);
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse photos from draft", e);
+                    }
+                }
             }
         }
     }, [draftId, valuations, sector]);
@@ -178,6 +193,46 @@ export default function ValuationPage({ params }: PageProps) {
         }
     };
 
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setIsDirty(true);
+        const files = e.target.files;
+        if (!files) return;
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Compress image using Canvas to save DB storage
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; // Max width for mobile uploads
+                    let scaleSize = 1;
+                    if (img.width > MAX_WIDTH) {
+                        scaleSize = MAX_WIDTH / img.width;
+                    }
+                    canvas.width = img.width * scaleSize;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // Re-encode as JPEG at 60% quality
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    setPhotos(prev => [...prev, { id: Math.random().toString(36).substring(7), dataUrl }]);
+                };
+                img.src = event.target?.result as string;
+            };
+            reader.readAsDataURL(file);
+        });
+        // Reset the input so the same file can be uploaded again if needed
+        e.target.value = '';
+    };
+
+    const removePhoto = (id: string) => {
+        setIsDirty(true);
+        setPhotos(prev => prev.filter(p => p.id !== id));
+    };
+
     const [lastValuationId, setLastValuationId] = useState<string | null>(null);
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -227,6 +282,11 @@ export default function ValuationPage({ params }: PageProps) {
                     else if (name !== 'submitAction') capturedDynamicData[name] = val;
                 });
             }
+        }
+
+        // Attach photos as a JSON string array to dynamic data
+        if (photos.length > 0) {
+            capturedDynamicData['app_photos'] = JSON.stringify(photos);
         }
 
         setSubmitting(true);
@@ -465,6 +525,54 @@ export default function ValuationPage({ params }: PageProps) {
                             </div>
                         )
                     )}
+
+                    {/* Section 4: Property Photos Mobile Interface */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4 flex items-center justify-between">
+                            <h3 className="text-base font-semibold leading-6 text-gray-900 flex items-center gap-2">
+                                <Camera className="h-4 w-4 text-gray-500" />
+                                Property Photos
+                            </h3>
+                            <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-md">
+                                {photos.length} Captured
+                            </span>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+                                {photos.map((photo) => (
+                                    <div key={photo.id} className="relative aspect-square rounded-lg border border-gray-200 overflow-hidden group bg-gray-50">
+                                        <img src={photo.dataUrl} alt="Property Upload" className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removePhoto(photo.id)}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-90 shadow-sm hover:bg-red-600 transition-colors"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <label className="relative aspect-square rounded-lg border-2 border-dashed border-indigo-300 bg-indigo-50/50 hover:bg-indigo-50 flex flex-col items-center justify-center cursor-pointer transition-colors group">
+                                    <div className="p-3 bg-white rounded-full shadow-sm text-indigo-500 group-hover:scale-110 group-hover:text-indigo-600 transition-all mb-2">
+                                        <ImagePlus className="h-6 w-6" />
+                                    </div>
+                                    <span className="text-xs font-semibold text-indigo-600">Add Photo</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handlePhotoUpload}
+                                    />
+                                </label>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                                Snap photos directly from your mobile camera or upload from gallery. Images are automatically compressed to save space.
+                            </p>
+                        </div>
+                    </div>
+
                     <div className="flex items-center justify-end gap-x-4 border-t border-gray-900/10 pt-6">
                         <button
                             type="button"
@@ -533,6 +641,7 @@ export default function ValuationPage({ params }: PageProps) {
                                 onClick={() => {
                                     setSubmitted(false);
                                     setIsDirty(false);
+                                    setPhotos([]);
                                     setFormData({
                                         clientName: "",
                                         propertyAddress: "",
