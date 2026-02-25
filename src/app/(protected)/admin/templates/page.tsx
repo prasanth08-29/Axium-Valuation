@@ -6,91 +6,91 @@ import { useState } from "react";
 
 const DEFAULT_CODE = (_sectorName: string) => `
 <div class="valuation-report-content">
-  <div class="text-center mb-8">
+  <div class="text-center mb-4">
     <h2 class="text-xl font-bold uppercase tracking-widest border-b-2 border-black inline-block pb-1">Valuation Report</h2>
   </div>
 
-  <table class="w-full border-collapse border-2 border-black mb-8">
+  <table class="w-full border-collapse border-2 border-black mb-4">
     <thead>
       <tr>
-        <th colspan="3" class="bg-gray-100 border border-black px-4 py-2 text-left font-bold uppercase text-sm">GENERAL INFORMATION</th>
+        <th colspan="3" class="bg-gray-100 border border-black px-2 py-1 text-left font-bold uppercase text-sm">GENERAL INFORMATION</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td class="border border-black px-4 py-2 text-center w-12">1</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Name of the party/owner</td>
-        <td class="border border-black px-4 py-2">
+        <td class="border border-black px-2 py-1 text-center w-12">1</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Name of the party/owner</td>
+        <td class="border border-black px-2 py-1">
           <input type="text" name="clientName" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Enter owner name">
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">2</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Address of the property</td>
-        <td class="border border-black px-4 py-2">
-          <textarea name="propertyAddress" rows="2" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Enter full address"></textarea>
+        <td class="border border-black px-2 py-1 text-center">2</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Address of the property</td>
+        <td class="border border-black px-2 py-1">
+          <textarea name="propertyAddress" rows="1" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Enter full address"></textarea>
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">3</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Name/s of reported owner & registration details</td>
-        <td class="border border-black px-4 py-2">
-          <textarea name="reportedOwner" rows="2" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Registration details..."></textarea>
+        <td class="border border-black px-2 py-1 text-center">3</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Name/s of reported owner & registration details</td>
+        <td class="border border-black px-2 py-1">
+          <textarea name="reportedOwner" rows="1" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Registration details..."></textarea>
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">4</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Purpose of valuation</td>
-        <td class="border border-black px-4 py-2">
+        <td class="border border-black px-2 py-1 text-center">4</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Purpose of valuation</td>
+        <td class="border border-black px-2 py-1">
           <input type="text" name="valuationPurpose" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="e.g. Bank Loan">
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">5</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">List of documents produced</td>
-        <td class="border border-black px-4 py-2">
-          <textarea name="documentsProduced" rows="2" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Documents..."></textarea>
+        <td class="border border-black px-2 py-1 text-center">5</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">List of documents produced</td>
+        <td class="border border-black px-2 py-1">
+          <textarea name="documentsProduced" rows="1" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Documents..."></textarea>
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">6</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Date of inspection</td>
-        <td class="border border-black px-4 py-2">
+        <td class="border border-black px-2 py-1 text-center">6</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Date of inspection</td>
+        <td class="border border-black px-2 py-1">
           <input type="date" name="inspectionDate" class="w-full border border-gray-300 rounded px-2 py-1">
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">7</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Date of valuation</td>
-        <td class="border border-black px-4 py-2">
+        <td class="border border-black px-2 py-1 text-center">7</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Date of valuation</td>
+        <td class="border border-black px-2 py-1">
           <input type="date" name="valuationDate" class="w-full border border-gray-300 rounded px-2 py-1" required>
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">8</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Distance from branch</td>
-        <td class="border border-black px-4 py-2">
+        <td class="border border-black px-2 py-1 text-center">8</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Distance from branch</td>
+        <td class="border border-black px-2 py-1">
           <input type="text" name="branchDistance" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="e.g. 5 km">
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">9</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Situation/location description</td>
-        <td class="border border-black px-4 py-2">
-          <textarea name="locationDescription" rows="2" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Describe locality..."></textarea>
+        <td class="border border-black px-2 py-1 text-center">9</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Situation/location description</td>
+        <td class="border border-black px-2 py-1">
+          <textarea name="locationDescription" rows="1" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="Describe locality..."></textarea>
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">10</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold">Latitude & Longitude</td>
-        <td class="border border-black px-4 py-2">
+        <td class="border border-black px-2 py-1 text-center">10</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold">Latitude & Longitude</td>
+        <td class="border border-black px-2 py-1">
           <input type="text" name="latLong" class="w-full border border-gray-300 rounded px-2 py-1" placeholder="GPS coordinates">
         </td>
       </tr>
       <tr>
-        <td class="border border-black px-4 py-2 text-center">11</td>
-        <td class="border border-black px-4 py-2 text-sm font-semibold italic">Valuation Amount ($)</td>
-        <td class="border border-black px-4 py-2">
+        <td class="border border-black px-2 py-1 text-center">11</td>
+        <td class="border border-black px-2 py-1 text-sm font-semibold italic">Valuation Amount ($)</td>
+        <td class="border border-black px-2 py-1">
           <input type="number" name="valuationAmount" class="w-full border border-gray-300 rounded px-2 py-1 font-bold" placeholder="0" required>
         </td>
       </tr>
@@ -176,13 +176,13 @@ export default function TemplatesPage() {
                   <div className="h-6 w-px bg-gray-300 mx-1" />
                   <button
                     onClick={() => setEditing(null)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                    className="px-2 py-1 text-sm font-medium text-gray-700 hover:text-gray-900"
                   >
                     Close
                   </button>
                   <button
                     onClick={() => handleSave(editing)}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm flex items-center gap-2"
+                    className="px-2 py-1 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md shadow-sm flex items-center gap-2"
                   >
                     <Save className="h-4 w-4" />
                     Save
@@ -193,7 +193,7 @@ export default function TemplatesPage() {
               <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
                 {/* Code Editor */}
                 <div className={`flex-1 flex flex-col border-r border-gray-200 ${previewMode ? "hidden md:flex md:w-1/2" : "w-full"}`}>
-                  <div className="bg-gray-900 text-gray-400 text-xs px-4 py-2 border-b border-gray-800 font-mono flex items-center justify-between">
+                  <div className="bg-gray-900 text-gray-400 text-xs px-2 py-1 border-b border-gray-800 font-mono flex items-center justify-between">
                     <span>HTML / CSS / JS Editor</span>
                     <div className="flex gap-2">
                       <button
@@ -228,7 +228,7 @@ export default function TemplatesPage() {
                   />
                   {/* Warning if no inputs or ids detected */}
                   {!code.includes('name=') && !code.includes('id=') && code.length > 50 && (
-                    <div className="bg-yellow-900/20 text-yellow-500 text-xs px-4 py-2 border-t border-yellow-900/30 flex items-center gap-2">
+                    <div className="bg-yellow-900/20 text-yellow-500 text-xs px-2 py-1 border-t border-yellow-900/30 flex items-center gap-2">
                       <AlertCircle className="h-3 w-3" />
                       Warning: No named fields or IDs detected. Users won&apos;t be able to enter data that saves.
                     </div>
@@ -237,7 +237,7 @@ export default function TemplatesPage() {
 
                 {/* Preview */}
                 <div className={`flex-1 flex flex-col bg-gray-50 ${!previewMode ? "hidden md:flex md:w-1/2" : "w-full overflow-y-auto"}`}>
-                  <div className="bg-white border-b border-gray-200 text-gray-500 text-xs px-4 py-2 relative">
+                  <div className="bg-white border-b border-gray-200 text-gray-500 text-xs px-2 py-1 relative">
                     Live Preview
                   </div>
                   <div className="p-8 flex-1 overflow-y-auto">

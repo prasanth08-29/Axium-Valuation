@@ -3,7 +3,7 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  
+
   /* Brand Colors */
   --brand-50: #eef2ff;
   --brand-100: #e0e7ff;
@@ -58,8 +58,33 @@ body {
   opacity: 0;
   transform: translateY(10px);
 }
+
 .page-transition-enter-active {
   opacity: 1;
   transform: translateY(0);
   transition: opacity 400ms, transform 400ms;
+}
+
+/* Valuation Template Compaction Overrides */
+.valuation-report-content table th,
+.valuation-report-content table td {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+  font-size: 0.875rem !important;
+}
+
+.valuation-report-content input[type="text"],
+.valuation-report-content input[type="date"],
+.valuation-report-content input[type="number"],
+.valuation-report-content textarea {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+  min-height: unset !important;
+  height: auto !important;
+}
+
+.valuation-report-content textarea {
+  height: 2rem !important;
 }
